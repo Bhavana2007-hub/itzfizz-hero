@@ -1,0 +1,570 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Itzfizz Digital — Hero</title>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/ScrollTrigger.min.js"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:wght@300;400;500&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet"/>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg:       #080808;
+      --surface:  #111111;
+      --accent:   #C8FF00;
+      --accent2:  #FF3C3C;
+      --text:     #F0EDE8;
+      --muted:    #555550;
+      --border:   rgba(200,255,0,0.15);
+    }
+
+    html { scroll-behavior: smooth; }
+
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: 'DM Sans', sans-serif;
+      overflow-x: hidden;
+      cursor: none;
+    }
+
+    /* ── Custom cursor ── */
+    #cursor {
+      width: 12px; height: 12px;
+      background: var(--accent);
+      border-radius: 50%;
+      position: fixed;
+      top: 0; left: 0;
+      pointer-events: none;
+      z-index: 9999;
+      transform: translate(-50%,-50%);
+      transition: transform 0.1s ease, width 0.25s ease, height 0.25s ease, background 0.25s ease;
+      mix-blend-mode: difference;
+    }
+    #cursor.hovering { width: 36px; height: 36px; background: white; }
+
+    /* ── Noise overlay ── */
+    body::before {
+      content: '';
+      position: fixed; inset: 0;
+      background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 512 512' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.75' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.04'/%3E%3C/svg%3E");
+      pointer-events: none;
+      z-index: 9998;
+      opacity: 0.5;
+    }
+
+    /* ── Nav ── */
+    nav {
+      position: fixed; top: 0; left: 0; right: 0;
+      z-index: 100;
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 1.5rem 3rem;
+      border-bottom: 1px solid var(--border);
+      backdrop-filter: blur(12px);
+      background: rgba(8,8,8,0.6);
+    }
+    .nav-logo {
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: 1.5rem;
+      letter-spacing: 0.15em;
+      color: var(--accent);
+    }
+    .nav-links { display: flex; gap: 2.5rem; }
+    .nav-links a {
+      font-family: 'Space Mono', monospace;
+      font-size: 0.7rem;
+      letter-spacing: 0.2em;
+      text-transform: uppercase;
+      color: var(--muted);
+      text-decoration: none;
+      transition: color 0.2s;
+    }
+    .nav-links a:hover { color: var(--accent); }
+    .nav-cta {
+      font-family: 'Space Mono', monospace;
+      font-size: 0.7rem;
+      letter-spacing: 0.15em;
+      text-transform: uppercase;
+      border: 1px solid var(--accent);
+      color: var(--accent);
+      background: transparent;
+      padding: 0.5rem 1.2rem;
+      cursor: none;
+      transition: background 0.2s, color 0.2s;
+    }
+    .nav-cta:hover { background: var(--accent); color: var(--bg); }
+
+    /* ── Hero ── */
+    #hero {
+      position: relative;
+      height: 100vh;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      overflow: hidden;
+    }
+
+    /* grid lines */
+    #hero::after {
+      content: '';
+      position: absolute; inset: 0;
+      background-image:
+        linear-gradient(rgba(200,255,0,0.04) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(200,255,0,0.04) 1px, transparent 1px);
+      background-size: 80px 80px;
+      pointer-events: none;
+    }
+
+    /* ── Headline ── */
+    .headline-wrap {
+      position: relative;
+      z-index: 10;
+      text-align: center;
+      overflow: hidden;
+    }
+    .headline {
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: clamp(3.5rem, 10vw, 9rem);
+      letter-spacing: 0.35em;
+      line-height: 1;
+      color: transparent;
+      -webkit-text-stroke: 1px rgba(240,237,232,0.25);
+      position: relative;
+      display: block;
+      opacity: 0;
+      transform: translateY(60px);
+    }
+    .headline .filled {
+      color: var(--text);
+      -webkit-text-stroke: 0;
+    }
+    .sub-headline {
+      font-family: 'Space Mono', monospace;
+      font-size: clamp(0.55rem, 1.2vw, 0.75rem);
+      letter-spacing: 0.45em;
+      color: var(--accent);
+      text-transform: uppercase;
+      margin-bottom: 1.2rem;
+      opacity: 0;
+      transform: translateY(20px);
+    }
+
+    /* ── Car stage ── */
+    #car-stage {
+      position: absolute;
+      inset: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      pointer-events: none;
+      z-index: 5;
+    }
+    #car-img {
+      width: clamp(380px, 60vw, 820px);
+      filter: drop-shadow(0 30px 80px rgba(200,255,0,0.18)) drop-shadow(0 0 60px rgba(200,255,0,0.08));
+      transform: translateX(120%) rotate(6deg);
+      opacity: 0;
+    }
+
+    /* glow behind car */
+    .car-glow {
+      position: absolute;
+      width: 500px; height: 200px;
+      background: radial-gradient(ellipse, rgba(200,255,0,0.12) 0%, transparent 70%);
+      border-radius: 50%;
+      bottom: 35%;
+      left: 50%;
+      transform: translateX(-50%);
+      pointer-events: none;
+      z-index: 4;
+      opacity: 0;
+    }
+
+    /* ── Stats row ── */
+    .stats-row {
+      position: absolute;
+      bottom: 3.5rem;
+      left: 0; right: 0;
+      display: flex;
+      justify-content: center;
+      gap: 0;
+      z-index: 10;
+      padding: 0 3rem;
+    }
+    .stat-item {
+      flex: 1;
+      max-width: 220px;
+      padding: 1.4rem 2rem;
+      border-left: 1px solid var(--border);
+      opacity: 0;
+      transform: translateY(30px);
+    }
+    .stat-item:last-child { border-right: 1px solid var(--border); }
+    .stat-number {
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: clamp(2.2rem, 4vw, 3.4rem);
+      color: var(--accent);
+      line-height: 1;
+      letter-spacing: 0.05em;
+    }
+    .stat-label {
+      font-family: 'DM Sans', sans-serif;
+      font-size: 0.72rem;
+      color: var(--muted);
+      margin-top: 0.35rem;
+      line-height: 1.4;
+      max-width: 140px;
+    }
+
+    /* scroll indicator */
+    .scroll-hint {
+      position: absolute;
+      bottom: 3.5rem;
+      right: 3rem;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 0.5rem;
+      z-index: 10;
+      opacity: 0;
+    }
+    .scroll-hint span {
+      font-family: 'Space Mono', monospace;
+      font-size: 0.6rem;
+      letter-spacing: 0.3em;
+      color: var(--muted);
+      text-transform: uppercase;
+      writing-mode: vertical-lr;
+    }
+    .scroll-line {
+      width: 1px;
+      height: 50px;
+      background: linear-gradient(to bottom, var(--accent), transparent);
+      animation: scrollPulse 1.8s ease-in-out infinite;
+    }
+    @keyframes scrollPulse {
+      0%,100% { opacity: 0.3; transform: scaleY(1); }
+      50% { opacity: 1; transform: scaleY(1.2); }
+    }
+
+    /* ── Scroll sections below hero ── */
+    .scroll-section {
+      height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      position: relative;
+    }
+    .scroll-section-inner {
+      max-width: 900px;
+      padding: 0 3rem;
+      text-align: center;
+    }
+    .section-eyebrow {
+      font-family: 'Space Mono', monospace;
+      font-size: 0.65rem;
+      letter-spacing: 0.4em;
+      color: var(--accent);
+      text-transform: uppercase;
+      margin-bottom: 1.5rem;
+    }
+    .section-title {
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: clamp(2.5rem, 6vw, 5.5rem);
+      letter-spacing: 0.08em;
+      line-height: 1.05;
+      margin-bottom: 1.5rem;
+    }
+    .section-body {
+      font-size: 1rem;
+      color: var(--muted);
+      line-height: 1.8;
+      max-width: 600px;
+      margin: 0 auto;
+    }
+    .divider {
+      width: 40px; height: 2px;
+      background: var(--accent);
+      margin: 2rem auto;
+    }
+
+    /* tag strip */
+    .tag-strip {
+      display: flex;
+      justify-content: center;
+      flex-wrap: wrap;
+      gap: 0.75rem;
+      margin-top: 2rem;
+    }
+    .tag {
+      font-family: 'Space Mono', monospace;
+      font-size: 0.65rem;
+      letter-spacing: 0.2em;
+      text-transform: uppercase;
+      border: 1px solid var(--border);
+      color: var(--muted);
+      padding: 0.4rem 1rem;
+      border-radius: 2px;
+    }
+
+    /* accent line top of page */
+    .top-accent {
+      position: fixed;
+      top: 0; left: 0; right: 0;
+      height: 2px;
+      background: linear-gradient(90deg, transparent, var(--accent), transparent);
+      z-index: 200;
+    }
+
+    /* ── Responsive ── */
+    @media (max-width: 768px) {
+      nav { padding: 1.2rem 1.5rem; }
+      .nav-links { display: none; }
+      .stats-row { gap: 0; padding: 0 1rem; }
+      .stat-item { padding: 1rem; max-width: 160px; }
+      #car-img { width: 95vw; }
+      .scroll-hint { display: none; }
+    }
+  </style>
+</head>
+<body>
+
+<div id="cursor"></div>
+<div class="top-accent"></div>
+
+<!-- Nav -->
+<nav>
+  <div class="nav-logo">Itzfizz</div>
+  <div class="nav-links">
+    <a href="#">Work</a>
+    <a href="#">Services</a>
+    <a href="#">About</a>
+    <a href="#">Contact</a>
+  </div>
+  <button class="nav-cta">Get Started</button>
+</nav>
+
+<!-- Hero -->
+<section id="hero">
+
+  <!-- Background glow -->
+  <div class="car-glow"></div>
+
+  <!-- Headline -->
+  <div class="headline-wrap" style="z-index:10; position:relative;">
+    <p class="sub-headline" id="sub-hl">Digital Agency — Est. 2024</p>
+    <span class="headline" id="main-hl">
+      <span class="filled">W E L C O M E</span>&nbsp;&nbsp;I T Z F I Z Z
+    </span>
+  </div>
+
+  <!-- Car -->
+  <div id="car-stage">
+    <!-- Using a free-to-use top-view car SVG drawn inline -->
+    <img id="car-img"
+      src="https://paraschaturvedi.github.io/McLaren%20720S%202022%20top%20view.png"
+      alt="McLaren 720S top view"
+      onerror="this.style.display='none'; document.getElementById('car-svg').style.display='block';"
+    />
+    <!-- SVG fallback car -->
+    <svg id="car-svg" display="none" width="700" height="320" viewBox="0 0 700 320" fill="none" xmlns="http://www.w3.org/2000/svg" style="filter:drop-shadow(0 20px 60px rgba(200,255,0,0.2))">
+      <!-- Body -->
+      <ellipse cx="350" cy="160" rx="280" ry="90" fill="#1a1a1a" stroke="#333" stroke-width="1.5"/>
+      <!-- Hood -->
+      <path d="M70 160 Q120 100 200 90 L350 85 L350 235 L200 230 Q120 220 70 160Z" fill="#222"/>
+      <!-- Rear -->
+      <path d="M630 160 Q580 100 500 90 L350 85 L350 235 L500 230 Q580 220 630 160Z" fill="#1d1d1d"/>
+      <!-- Roof -->
+      <ellipse cx="350" cy="150" rx="130" ry="55" fill="#141414" stroke="#2a2a2a" stroke-width="1"/>
+      <!-- Windshield -->
+      <path d="M240 120 Q280 95 350 92 Q420 95 460 120 L440 148 Q400 128 350 126 Q300 128 260 148Z" fill="#0f2a1a" opacity="0.9"/>
+      <!-- Rear window -->
+      <path d="M240 180 Q280 205 350 207 Q420 205 460 180 L440 152 Q400 170 350 172 Q300 170 260 152Z" fill="#0f2a1a" opacity="0.7"/>
+      <!-- Wheels -->
+      <circle cx="170" cy="160" r="52" fill="#111" stroke="#C8FF00" stroke-width="2"/>
+      <circle cx="170" cy="160" r="32" fill="#0a0a0a" stroke="#333" stroke-width="1"/>
+      <circle cx="170" cy="160" r="10" fill="#C8FF00"/>
+      <circle cx="530" cy="160" r="52" fill="#111" stroke="#C8FF00" stroke-width="2"/>
+      <circle cx="530" cy="160" r="32" fill="#0a0a0a" stroke="#333" stroke-width="1"/>
+      <circle cx="530" cy="160" r="10" fill="#C8FF00"/>
+      <!-- Accent stripe -->
+      <line x1="120" y1="158" x2="580" y2="158" stroke="#C8FF00" stroke-width="0.6" opacity="0.4"/>
+      <!-- Headlights -->
+      <ellipse cx="88" cy="148" rx="14" ry="7" fill="#C8FF00" opacity="0.9"/>
+      <ellipse cx="88" cy="172" rx="14" ry="7" fill="#C8FF00" opacity="0.6"/>
+      <!-- Taillights -->
+      <ellipse cx="612" cy="148" rx="14" ry="7" fill="#FF3C3C" opacity="0.9"/>
+      <ellipse cx="612" cy="172" rx="14" ry="7" fill="#FF3C3C" opacity="0.6"/>
+    </svg>
+  </div>
+
+  <!-- Stats -->
+  <div class="stats-row">
+    <div class="stat-item" id="s1">
+      <div class="stat-number">58%</div>
+      <div class="stat-label">Increase in digital engagement</div>
+    </div>
+    <div class="stat-item" id="s2">
+      <div class="stat-number">23%</div>
+      <div class="stat-label">Decrease in bounce rate</div>
+    </div>
+    <div class="stat-item" id="s3">
+      <div class="stat-number">27%</div>
+      <div class="stat-label">Growth in qualified leads</div>
+    </div>
+    <div class="stat-item" id="s4">
+      <div class="stat-number">40%</div>
+      <div class="stat-label">Rise in conversion rate</div>
+    </div>
+  </div>
+
+  <!-- Scroll hint -->
+  <div class="scroll-hint" id="scroll-hint">
+    <span>Scroll</span>
+    <div class="scroll-line"></div>
+  </div>
+
+</section>
+
+<!-- Extra scroll depth for animation -->
+<section class="scroll-section">
+  <div class="scroll-section-inner">
+    <p class="section-eyebrow">What We Do</p>
+    <h2 class="section-title">We Build Digital Experiences That Convert</h2>
+    <div class="divider"></div>
+    <p class="section-body">
+      From Shopify stores to full-stack web applications, Itzfizz Digital crafts high-performance products that blend beautiful design with measurable business outcomes.
+    </p>
+    <div class="tag-strip">
+      <span class="tag">Shopify</span>
+      <span class="tag">WordPress</span>
+      <span class="tag">React</span>
+      <span class="tag">UI/UX Design</span>
+      <span class="tag">Performance</span>
+      <span class="tag">SEO</span>
+    </div>
+  </div>
+</section>
+
+<section class="scroll-section" style="background: var(--surface);">
+  <div class="scroll-section-inner">
+    <p class="section-eyebrow">Our Process</p>
+    <h2 class="section-title">Precision At Every Stage</h2>
+    <div class="divider"></div>
+    <p class="section-body">
+      We follow a rigorous process — research, wireframe, design, develop, optimise. No shortcuts. Every project is built to perform, scale, and impress.
+    </p>
+  </div>
+</section>
+
+<script>
+  gsap.registerPlugin(ScrollTrigger);
+
+  /* ── Cursor ── */
+  const cursor = document.getElementById('cursor');
+  window.addEventListener('mousemove', e => {
+    gsap.to(cursor, { x: e.clientX, y: e.clientY, duration: 0.12, ease: 'power2.out' });
+  });
+  document.querySelectorAll('a, button, .stat-item').forEach(el => {
+    el.addEventListener('mouseenter', () => cursor.classList.add('hovering'));
+    el.addEventListener('mouseleave', () => cursor.classList.remove('hovering'));
+  });
+
+  /* ── Page-load intro timeline ── */
+  const tl = gsap.timeline({ defaults: { ease: 'power4.out' } });
+
+  tl.to('#sub-hl', { opacity: 1, y: 0, duration: 0.8 }, 0.3)
+    .to('#main-hl', { opacity: 1, y: 0, duration: 1.1 }, 0.55)
+    .to('#car-img, #car-svg', {
+        opacity: 1,
+        x: '0%',
+        rotate: 0,
+        duration: 1.4,
+        ease: 'expo.out'
+      }, 0.9)
+    .to('.car-glow', { opacity: 1, duration: 1 }, 1.1)
+    .to(['#s1','#s2','#s3','#s4'], {
+        opacity: 1, y: 0,
+        stagger: 0.15,
+        duration: 0.7
+      }, 1.3)
+    .to('#scroll-hint', { opacity: 1, duration: 0.6 }, 2.0);
+
+  /* ── Scroll-driven car animation ── */
+  const carEl = document.getElementById('car-img').style.display !== 'none'
+    ? document.getElementById('car-img')
+    : document.getElementById('car-svg');
+
+  // Tie car position to scroll progress — moves left→right across viewport
+  ScrollTrigger.create({
+    trigger: '#hero',
+    start: 'top top',
+    end: 'bottom top',
+    scrub: 1.2,
+    onUpdate: self => {
+      const p = self.progress; // 0 → 1
+      // horizontal drift: centre → offscreen-left
+      const xPct = -p * 110;
+      // subtle scale-down as it exits
+      const scale = 1 - p * 0.15;
+      // rotate slightly
+      const rot = -p * 8;
+      // slight vertical lift
+      const yPx = -p * 60;
+
+      gsap.set('#car-img, #car-svg', {
+        xPercent: xPct,
+        y: yPx,
+        scale: scale,
+        rotate: rot
+      });
+
+      // Fade out stats & headline as user scrolls
+      gsap.set(['#s1','#s2','#s3','#s4','#main-hl','#sub-hl','#scroll-hint'], {
+        opacity: 1 - p * 1.6
+      });
+    }
+  });
+
+  /* ── Headline outline/fill morph on scroll ── */
+  ScrollTrigger.create({
+    trigger: '#hero',
+    start: 'top top',
+    end: '50% top',
+    scrub: true,
+    onUpdate: self => {
+      const alpha = Math.max(0, 1 - self.progress * 2);
+      document.getElementById('main-hl').style.opacity = alpha;
+    }
+  });
+
+  /* ── Counter animation for stats ── */
+  const statNums = [58, 23, 27, 40];
+  const statEls = document.querySelectorAll('.stat-number');
+
+  // animate counters once visible
+  statEls.forEach((el, i) => {
+    const target = statNums[i];
+    ScrollTrigger.create({
+      trigger: el,
+      start: 'top 90%',
+      once: true,
+      onEnter: () => {
+        gsap.fromTo({ val: 0 }, { val: target },
+          {
+            duration: 1.5,
+            ease: 'power2.out',
+            onUpdate: function() {
+              el.textContent = Math.round(this.targets()[0].val) + '%';
+            }
+          }
+        );
+      }
+    });
+  });
+</script>
+</body>
+</html>
